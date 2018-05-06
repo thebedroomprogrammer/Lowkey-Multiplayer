@@ -1,0 +1,31 @@
+{
+  "name": "lowkey-multiplayer-server",
+  "version": "1.0.0",
+  "description": "A nodejs-express server implementation that acts as backend engine of the multiplayer game using websockets",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon app.js"
+  },
+  "keywords": [
+    "sockets",
+    "websockets",
+    "nodejs",
+    "js",
+    "express",
+    "game",
+    "game",
+    "engine"
+  ],
+  "author": "Arpit Dubey",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^1.18.2",
+    "express": "^4.16.3",
+    "morgan": "^1.9.0",
+    "nodemon": "^1.17.3",
+    "path": "^0.12.7",
+    "uuid": "^3.2.1",
+    "ws": "^5.1.1"
+  }
+}
