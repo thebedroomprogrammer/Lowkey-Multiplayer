@@ -1,39 +1,43 @@
 import Game from "scripts/components/Game";
 import Player from "scripts/components/Player";
 import Bullet from "scripts/components/Bullet";
+import Socket from "scripts/components/Socket";
+import GS from "scripts/components/GameState";
 
 (function() {
-  
-  var myPlayer = {
-    x: 10,
-    y: 10
-  };
-
-  var myGamePiece = new Player.PlayerShip();
+  Socket.init();
 
   function draw() {
+    
     colorRect(0, 0, Game.canvas.height, Game.canvas.width, "black");
-    myGamePiece.moveAngle = 0;
-    myGamePiece.speed = 0;
+    GS.gameState.myPlayer.moveAngle = 0;
+    GS.gameState.myPlayer.speed = 0;
     if (window.keys && window.keys[32]) {
-      myGamePiece.fireBullet();
+      GS.gameState.myPlayer.fireBullet();
     }
     if (window.keys && window.keys[65]) {
-      myGamePiece.moveAngle = -3;
+      GS.gameState.myPlayer.moveAngle = -3;
     }
     if (window.keys && window.keys[68]) {
-      myGamePiece.moveAngle = 3;
+      GS.gameState.myPlayer.moveAngle = 3;
     }
     if (window.keys && window.keys[87]) {
-      myGamePiece.speed = 3;
+      GS.gameState.myPlayer.speed = 3;
     }
     if (window.keys && window.keys[83]) {
-      myGamePiece.speed = -3;
+      GS.gameState.myPlayer.speed = -3;
     }
 
-    myGamePiece.newPos();
-    myGamePiece.update();
-    myGamePiece.bullets.forEach(function(bullet) {
+    GS.gameState.myPlayer.newPos();
+    GS.gameState.myPlayer.update();
+    GS.gameState.bullets.forEach((bullet)=>{
+      bullet.newPos();
+      bullet.update();
+    });
+    GS.gameState.players.forEach((player)=>{
+      player.update();
+    });
+    GS.gameState.myPlayer.bullets.forEach(function(bullet) {
       bullet.newPos();
       bullet.update();
     });

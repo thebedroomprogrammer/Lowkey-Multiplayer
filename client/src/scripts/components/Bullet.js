@@ -1,8 +1,9 @@
 import Game from "scripts/components/Game";
 
 export default (function() {
-  function Bullet(x, y, angle, speed) {
+  function Bullet(id, x, y, angle, speed) {
     this.width = 2;
+    this._id = id;
     this.color = "white";
     this.height = 7;
     this.speed = 5;

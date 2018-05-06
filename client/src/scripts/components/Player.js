@@ -1,19 +1,21 @@
 import Game from "scripts/components/Game";
 import Bullet from "scripts/components/Bullet";
+import Socket from "scripts/components/Socket";
 
 export default (function() {
   //Player Ship Code Starts
-  function PlayerShip() {
+  function PlayerShip(id, x = 30, y = 30, angle = 0) {
     this.width = 30;
     this.color = "white";
     this.height = 30;
     this.speed = 0;
-    this.angle = 0;
+    this.angle = angle;
     this.moveAngle = 0;
-    this.x = 30;
-    this.y = 30;
+    this.x = x;
+    this.y = y;
     this.bullets = [];
     this.canFire = true;
+    this._id = id;
   }
 
   PlayerShip.prototype.newPos = function() {
@@ -39,7 +41,13 @@ export default (function() {
   PlayerShip.prototype.fireBullet = function() {
     if (this.canFire && window.keys[32]) {
       this.canFire = false;
-      this.bullets.push(new Bullet.Bullet(this.x, this.y, this.angle, this.speed));
+      this.bullets.push(
+        new Bullet.Bullet(this._id, this.x, this.y, this.angle, this.speed)
+      );
+      Socket.sendData([
+        "FIRE_BULLET",
+        { _id: this._id, x: this.x, y: this.y, angle: this.angle }
+      ]);
       var thisPlayerShip = this;
       setTimeout(function() {
         thisPlayerShip.canFire = true;
@@ -47,7 +55,16 @@ export default (function() {
     }
   };
 
+  PlayerShip.prototype.pos = function() {
+    return {
+      _id: this._id,
+      x: this.x,
+      y: this.y,
+      angle: this.angle
+    };
+  };
+
   return {
-      PlayerShip
-  }
+    PlayerShip
+  };
 })();
