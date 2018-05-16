@@ -1,5 +1,5 @@
 # Lowkey-Multiplayer
-### A simple browser based real-time multiplayer game.([Playable Demo](https//lowkeymultiplayer.herokuapp.com))
+### A simple browser based real-time multiplayer game.([Playable Demo](https://lowkeymultiplayer.herokuapp.com))
 
 ![Alt text](game.gif?raw=true "Lowkey Multiplayer")
 
