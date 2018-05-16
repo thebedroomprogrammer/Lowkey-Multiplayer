@@ -23,8 +23,8 @@ export default (function() {
   let ctx;
   let FPS = 30;
   canvas = document.getElementById("gameCanvas");
-  canvas.height = 600;
-  canvas.width = 600;
+  canvas.height = 768;
+  canvas.width = 1366;
   ctx = canvas.getContext("2d");
 
   return {

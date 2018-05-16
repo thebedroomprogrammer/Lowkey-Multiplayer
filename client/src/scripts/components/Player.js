@@ -16,9 +16,20 @@ export default (function() {
     this.bullets = [];
     this.canFire = true;
     this._id = id;
+    this.lastState = {};
+    this.colided = false;
+    this.life = 100;
+    this.capacity = 5;
+    this.alive = true;
   }
 
   PlayerShip.prototype.newPos = function() {
+    this.lastState = {
+      x: this.x,
+      y: this.y,
+      angle: this.angle
+    };
+    
     this.angle += this.moveAngle * Math.PI / 180;
     this.x += this.speed * Math.sin(this.angle);
     this.y -= this.speed * Math.cos(this.angle);
@@ -26,6 +37,7 @@ export default (function() {
 
   PlayerShip.prototype.update = function() {
     Game.ctx.save();
+
     Game.ctx.translate(this.x, this.y);
     Game.ctx.rotate(this.angle);
     Game.ctx.fillStyle = this.color;
@@ -35,23 +47,37 @@ export default (function() {
       this.width,
       this.height
     );
+
+    Game.ctx.fillStyle = this.color;
+    Game.ctx.fillRect(-2, -this.height + 5, 4, 10);
+    Game.ctx.rotate(-this.angle);
+    Game.ctx.fillStyle = "black";
+    Game.ctx.font = "bold 11px Arial";
+    Game.ctx.fillText(this.life, -9.5, 5);
     Game.ctx.restore();
   };
 
   PlayerShip.prototype.fireBullet = function() {
     if (this.canFire && window.keys[32]) {
-      this.canFire = false;
-      this.bullets.push(
-        new Bullet.Bullet(this._id, this.x, this.y, this.angle, this.speed)
-      );
-      Socket.sendData([
-        "FIRE_BULLET",
-        { _id: this._id, x: this.x, y: this.y, angle: this.angle }
-      ]);
       var thisPlayerShip = this;
-      setTimeout(function() {
-        thisPlayerShip.canFire = true;
-      }, 150);
+      if (this.capacity == 0) {
+        this.canFire = false;
+        setTimeout(function() {
+          thisPlayerShip.canFire = true;
+          thisPlayerShip.capacity = 5;
+        }, 1000);
+      } else {
+        this.canFire = false;
+        this.bullets.push(
+          new Bullet.Bullet(this._id, this.x, this.y, this.angle, this.speed)
+        );
+        Socket.sendData([5, this._id, this.x, this.y, this.angle]);
+        
+        setTimeout(function() {
+          thisPlayerShip.canFire = true;
+        }, 150);
+        this.capacity = this.capacity - 1;
+      }
     }
   };
 
@@ -64,6 +90,16 @@ export default (function() {
     };
   };
 
+  PlayerShip.prototype.collision = function(flag) {
+    this.colided = flag;
+    if (flag && this.lastState) {
+      this.x = this.lastState.x;
+      this.y = this.lastState.y;
+      this.angle = this.lastState.angle;
+    }
+  };
+
+  PlayerShip.prototype.updateLastPressed = function(key) {};
   return {
     PlayerShip
   };

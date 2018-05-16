@@ -1,10 +1,13 @@
 import { socketEP } from "scripts/utils";
 import GS from "scripts/components/GameState";
+import msgpack from "msgpack-lite";
+import Game from "scripts/components/Game";
 
 export default (function() {
   let ws;
   let createConnection = () => {
     ws = new WebSocket("ws://localhost:3000");
+    ws.binaryType = "arraybuffer";
 
     ws.onmessage = function(socketMsg) {
       let msg = socketEP(socketMsg);
@@ -21,7 +24,7 @@ export default (function() {
 
           break;
 
-          case "FIRE_BULLET":
+        case "FIRE_BULLET":
           GS.updateGameState({
             type: "FIRE_BULLET",
             payload: msg.data
@@ -42,16 +45,62 @@ export default (function() {
             payload: msg.data
           });
           break;
+        case "PLAYER_HIT":
+          GS.updateGameState({
+            type: "PLAYER_HIT",
+            payload: msg.data
+          });
+          break;
       }
     };
 
     setInterval(() => {
-      ws.send(JSON.stringify(["MY_PLAYER_POS", GS.gameState.myPlayer.pos()]));
+      if (GS.gameState.myPlayer.alive) {
+        let pos = GS.gameState.myPlayer.pos();
+        ws.send(msgpack.encode([3, pos._id, pos.x, pos.y, pos.angle,GS.gameState.myPlayer.life]));
+      }
     }, 1000 / 30);
+
+    setInterval(() => {
+      if (GS.gameState.myPlayer && GS.gameState.myPlayer.bullets) {
+        var myPlayerBullets = GS.gameState.myPlayer.bullets.filter(bullet => {
+          if (
+            bullet.x > 0 &&
+            bullet.x < Game.canvas.width &&
+            bullet.y > 0 &&
+            bullet.y < Game.canvas.height
+          ) {
+            return true;
+          }
+          return false;
+        });
+      }
+      if (GS.gameState.bullets) {
+        var allPlayerBullets = GS.gameState.bullets.filter(bullet => {
+          if (
+            bullet.x > 0 &&
+            bullet.x < Game.canvas.width &&
+            bullet.y > 0 &&
+            bullet.y < Game.canvas.height
+          ) {
+            return true;
+          }
+          return false;
+        });
+      }
+
+      GS.updateGameState({
+        type: "DESTROY_BULLETS",
+        payload: {
+          myPlayerBullets,
+          allPlayerBullets
+        }
+      });
+    }, 2000);
   };
 
   let sendData = data => {
-    ws.send(JSON.stringify(data));
+    ws.send(msgpack.encode(data));
   };
 
   return {

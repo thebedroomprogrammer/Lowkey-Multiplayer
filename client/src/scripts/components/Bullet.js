@@ -6,7 +6,7 @@ export default (function() {
     this._id = id;
     this.color = "white";
     this.height = 7;
-    this.speed = 5;
+    this.speed = 10;
     this.angle = angle;
     this.x = x;
     this.y = y;
