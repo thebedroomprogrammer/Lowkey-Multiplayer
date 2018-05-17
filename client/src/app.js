@@ -3,6 +3,7 @@ import Player from "scripts/components/Player";
 import Bullet from "scripts/components/Bullet";
 import Socket from "scripts/components/Socket";
 import GS from "scripts/components/GameState";
+import "styles/index.css";
 
 function detectCollision() {
   if (GS.gameState.myPlayer) {
@@ -159,11 +160,18 @@ function rangeIntersect(min0, max0, min1, max1) {
   );
 }
 
-var button = document.getElementById("startGame");
-button.addEventListener("click", function() {
-  button.remove();
- 
-  Socket.init();
+var form = document.getElementById("welcomeForm");
+form.addEventListener("submit", function(e) {
+  e.preventDefault();
+  let inputName = document.getElementById("username");
+  if (!inputName.value) {
+    inputName.placeholder = "Enter you name! WTF!";
+    return;
+  }
+
+  configureHTML();
+  
+  Socket.init(inputName.value);
   var GAME_LOOP;
   function draw() {
     if (GS.gameState.initGame) {
@@ -199,7 +207,6 @@ button.addEventListener("click", function() {
         bullet.newPos();
         bullet.update();
       });
-    
     }
   }
 
@@ -224,3 +231,136 @@ button.addEventListener("click", function() {
     Game.ctx.fill();
   }
 });
+
+//This code is not mine
+(function() {
+  var canvas = document.getElementById("welcomeCanvas");
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  var ctx = canvas.getContext("2d");
+
+  var TAU = 2 * Math.PI;
+
+  let times = [];
+  function loop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    update();
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  function Ball(startX, startY, startVelX, startVelY) {
+    this.x = startX || Math.random() * canvas.width;
+    this.y = startY || Math.random() * canvas.height;
+    this.vel = {
+      x: startVelX || Math.random() * 2 - 1,
+      y: startVelY || Math.random() * 2 - 1
+    };
+    this.update = function(canvas) {
+      if (this.x > canvas.width + 50 || this.x < -50) {
+        this.vel.x = -this.vel.x;
+      }
+      if (this.y > canvas.height + 50 || this.y < -50) {
+        this.vel.y = -this.vel.y;
+      }
+      this.x += this.vel.x;
+      this.y += this.vel.y;
+    };
+    this.draw = function(ctx, can) {
+      ctx.beginPath();
+      ctx.globalAlpha = 0.4;
+      ctx.fillStyle = "red";
+      ctx.arc((0.5 + this.x) | 0, (0.5 + this.y) | 0, 3, 0, TAU, false);
+      ctx.fill();
+    };
+  }
+
+  var balls = [];
+  for (var i = 0; i < canvas.width * canvas.height / (65 * 65); i++) {
+    balls.push(
+      new Ball(Math.random() * canvas.width, Math.random() * canvas.height)
+    );
+  }
+
+  var lastTime = Date.now();
+  function update() {
+    var diff = Date.now() - lastTime;
+    for (var frame = 0; frame * 16.6667 < diff; frame++) {
+      for (var index = 0; index < balls.length; index++) {
+        balls[index].update(canvas);
+      }
+    }
+    lastTime = Date.now();
+  }
+  var mouseX = -1e9,
+    mouseY = -1e9;
+  document.addEventListener("mousemove", function(event) {
+    mouseX = event.clientX;
+    mouseY = event.clientY;
+  });
+
+  function distMouse(ball) {
+    return Math.hypot(ball.x - mouseX, ball.y - mouseY);
+  }
+
+  function draw() {
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = "#001c33";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    for (var index = 0; index < balls.length; index++) {
+      var ball = balls[index];
+      ball.draw(ctx, canvas);
+      ctx.beginPath();
+      for (var index2 = balls.length - 1; index2 > index; index2 += -1) {
+        var ball2 = balls[index2];
+        var dist = Math.hypot(ball.x - ball2.x, ball.y - ball2.y);
+        if (dist < 100) {
+          ctx.strokeStyle = "red";
+          ctx.globalAlpha = 1 - (dist > 100 ? 0.8 : dist / 150);
+          ctx.lineWidth = "2px";
+          ctx.moveTo((0.5 + ball.x) | 0, (0.5 + ball.y) | 0);
+          ctx.lineTo((0.5 + ball2.x) | 0, (0.5 + ball2.y) | 0);
+        }
+      }
+      ctx.stroke();
+    }
+  }
+
+  // Start
+  loop();
+})();
+
+
+function configureHTML(){
+  document.getElementById("welcomeScreen").remove();
+  let gameCanvas = document.getElementById("gameCanvas");
+  gameCanvas.style.display = "inline-block";
+  gameCanvas.focus();
+  gameCanvas.insertAdjacentHTML(
+    "afterend",
+    `<div class="chat-window" id="chatWindow">
+      <div id="chatDisplay" class="chat-display">
+      </div>
+      <div class="send-container">
+        <form id="chatForm">
+          <input id="chatInput" type="text"/>
+          <button id="chatSubmit" type="submit">
+            send
+          </button>
+        </form>
+      <div>
+    </div>`
+  );
+
+  document.getElementById("chatForm").addEventListener("submit",(e)=>{
+    e.preventDefault();
+    let msg = document.getElementById("chatInput").value;
+    document.getElementById("chatInput").value = "";
+    let cd = document.getElementById("chatDisplay");
+    let cm = document.createElement("DIV");
+    let t = document.createTextNode(GS.gameState.myPlayer.username + " : "+msg);
+    cm.appendChild(t);
+    document.getElementById("chatDisplay").appendChild(cm);
+    Socket.sendData([7,GS.gameState.myPlayer._id,GS.gameState.myPlayer.username,msg]);
+  });
+}

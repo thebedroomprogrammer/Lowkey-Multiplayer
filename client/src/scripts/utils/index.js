@@ -8,7 +8,7 @@ export let socketEP = socketData => {
     switch (decodedData[0]) {
       case 1:
         event = "CREATE_PLAYER";
-        data = { _id: decodedData[1] };
+        data = { _id: decodedData[1], username: decodedData[2] };
 
         return {
           event,
@@ -32,7 +32,8 @@ export let socketEP = socketData => {
           x: decodedData[2],
           y: decodedData[3],
           angle: decodedData[4],
-          life:decodedData[5]
+          life: decodedData[5],
+          username: decodedData[6]
         };
 
         return {
@@ -48,7 +49,8 @@ export let socketEP = socketData => {
           x: decodedData[2],
           y: decodedData[3],
           angle: decodedData[4],
-          life: decodedData[5]
+          life: decodedData[5],
+          username:decodedData[6]
         };
 
         return {
@@ -74,6 +76,19 @@ export let socketEP = socketData => {
         event = "PLAYER_HIT";
         data = {
           _id: decodedData[1]
+        };
+
+        return {
+          event,
+          data
+        };
+        break;
+      case 7:
+        event = "RECEIVE_MSG";
+        data = {
+          _id: decodedData[1],
+          username: decodedData[2],
+          msg: decodedData[3]
         };
 
         return {

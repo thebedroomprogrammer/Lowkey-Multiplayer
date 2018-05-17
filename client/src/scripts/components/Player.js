@@ -4,7 +4,7 @@ import Socket from "scripts/components/Socket";
 
 export default (function() {
   //Player Ship Code Starts
-  function PlayerShip(id, x = 30, y = 30, angle = 0) {
+  function PlayerShip(id, x = 30, y = 30, username,angle = 0) {
     this.width = 30;
     this.color = "white";
     this.height = 30;
@@ -21,6 +21,7 @@ export default (function() {
     this.life = 100;
     this.capacity = 5;
     this.alive = true;
+    this.username = username;
   }
 
   PlayerShip.prototype.newPos = function() {
@@ -54,6 +55,10 @@ export default (function() {
     Game.ctx.fillStyle = "black";
     Game.ctx.font = "bold 11px Arial";
     Game.ctx.fillText(this.life, -9.5, 5);
+    Game.ctx.fillStyle = "white";
+    Game.ctx.font = "bold 12px Arial";
+    Game.ctx.rotate(this.angle);
+    Game.ctx.fillText(this.username, -15, 30);
     Game.ctx.restore();
   };
 

@@ -5,8 +5,8 @@ import Game from "scripts/components/Game";
 
 export default (function() {
   let ws;
-  let createConnection = () => {
-    ws = new WebSocket("ws://localhost:3000");
+  let createConnection = username => {
+    ws = new WebSocket("wss://lowkeymultiplayer.herokuapp.com?name=" + username);
     ws.binaryType = "arraybuffer";
 
     ws.onmessage = function(socketMsg) {
@@ -14,11 +14,11 @@ export default (function() {
 
       switch (msg.event) {
         case "CREATE_PLAYER":
-          console.log("create player");
           GS.updateGameState({
             type: "CREATE_PLAYER",
             payload: {
-              _id: msg.data._id
+              _id: msg.data._id,
+              username: msg.data.username
             }
           });
 
@@ -51,13 +51,29 @@ export default (function() {
             payload: msg.data
           });
           break;
+        case "RECEIVE_MSG":
+          let cm = document.createElement("DIV");
+          let t = document.createTextNode(msg.data.username + " : " + msg.data.msg);
+          cm.appendChild(t);
+          document.getElementById("chatDisplay").appendChild(cm);
+          break;
       }
     };
 
     setInterval(() => {
       if (GS.gameState.myPlayer.alive) {
         let pos = GS.gameState.myPlayer.pos();
-        ws.send(msgpack.encode([3, pos._id, pos.x, pos.y, pos.angle,GS.gameState.myPlayer.life]));
+        ws.send(
+          msgpack.encode([
+            3,
+            pos._id,
+            pos.x,
+            pos.y,
+            pos.angle,
+            GS.gameState.myPlayer.life,
+            GS.gameState.myPlayer.username
+          ])
+        );
       }
     }, 1000 / 30);
 

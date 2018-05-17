@@ -31,7 +31,8 @@ export default (function() {
         gameState.myPlayer = new Player.PlayerShip(
           action.payload._id,
           Math.floor(Math.random() * 1300 + 1),
-          Math.floor(Math.random() * 700 + 1)
+          Math.floor(Math.random() * 700 + 1),
+          action.payload.username
         );
         gameState.initGame = true;
 
@@ -72,6 +73,7 @@ export default (function() {
             action.payload._id,
             action.payload.x,
             action.payload.y,
+            action.payload.username,
             action.payload.angle
           );
           gameState.players.push(newPlayer);

@@ -27,10 +27,10 @@ const config = {
         exclude: /node_modules/
       },
       {
-        test: /\.scss$/,
+        test: /\.css$/,
         use: ExtractTextPlugin.extract({
           fallback: "style-loader",
-          use: ["style-loader", "css-loader"]
+          use: [ "css-loader"]
         })
       },
       {
@@ -40,6 +40,7 @@ const config = {
     ]
   },
   plugins: [
+    new ExtractTextPlugin('css/styles.[hash].css'),
     new HtmlWebpackPlugin({
       template: "src/templates/index.html"
     }),

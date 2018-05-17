@@ -1,6 +1,6 @@
 export default (function() {
   // Adding event listner to the window element in order to accept user input. Controls are "W,A,S,D,Space";
-  window.addEventListener("keydown", function(e) {
+  document.getElementById("gameCanvas").addEventListener("keydown", function(e) {
     if ([32, 65, 68, 87, 83].includes(e.keyCode)) {
       e.preventDefault();
       window.keys = window.keys || {};
@@ -10,14 +10,14 @@ export default (function() {
     }
   });
 
-  window.addEventListener("keyup", function(e) {
+  document.getElementById("gameCanvas").addEventListener("keyup", function(e) {
     if ([32, 65, 68, 87, 83].includes(e.keyCode)) {
       window.keys[e.keyCode] = e.type == "keydown";
     } else {
       return;
     }
   });
-
+  
   //Initializing Game Setup
   let canvas;
   let ctx;
