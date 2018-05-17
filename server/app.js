@@ -5,6 +5,7 @@ var logger = require("morgan");
 var bodyParser = require("body-parser");
 var WebSocket = require("ws");
 var uuidv4 = require("uuid/v4");
+var url = require("url");
 var msgpack = require("msgpack-lite");
 
 app.set("port", process.env.PORT || 3000);
@@ -29,13 +30,15 @@ function heartbeat() {
 }
 
 wss.on("connection", function connection(ws, req) {
+  const location = url.parse(req.url, true);
+  const username = location.query.name;
   // Assign a unique identifier to the player connected
   ws.uid = uuidv4().split("-")[0];
   ws.isAlive = true;
   ws.on("pong", heartbeat);
   players.push(ws.uid);
 
-  ws.send(msgpack.encode([1, ws.uid]));
+  ws.send(msgpack.encode([1, ws.uid, username]));
 
   ws.on("close", function() {
     wss.clients.forEach(function each(client) {
@@ -59,7 +62,8 @@ wss.on("connection", function connection(ws, req) {
                   msg.data.x,
                   msg.data.y,
                   msg.data.angle,
-                  msg.data.life
+                  msg.data.life,
+                  msg.data.username
                 ])
               );
             }
@@ -83,12 +87,14 @@ wss.on("connection", function connection(ws, req) {
         case "PLAYER_HIT":
           wss.clients.forEach(function each(client) {
             if (client !== ws && client.readyState === WebSocket.OPEN) {
-              client.send(
-                msgpack.encode([
-                  6,
-                  msg.data._id,
-                ])
-              );
+              client.send(msgpack.encode([6, msg.data._id]));
+            }
+          });
+          break;
+        case "RECEIVE_MSG":
+          wss.clients.forEach(function each(client) {
+            if (client !== ws && client.readyState === WebSocket.OPEN) {
+              client.send(msgpack.encode([7, msg.data._id,msg.data.username,msg.data.msg]));
             }
           });
           break;
@@ -105,7 +111,7 @@ function socketEP(socketData) {
   switch (decodedData[0]) {
     case 1:
       event = "CREATE_PLAYER";
-      data = { _id: decodedData[1] };
+      data = { _id: decodedData[1], username: decodedData[2] };
 
       return {
         event,
@@ -128,7 +134,8 @@ function socketEP(socketData) {
         x: decodedData[2],
         y: decodedData[3],
         angle: decodedData[4],
-        life: decodedData[5]
+        life: decodedData[5],
+        username: decodedData[6]
       };
 
       return {
@@ -144,6 +151,7 @@ function socketEP(socketData) {
         y: decodedData[3],
         angle: decodedData[4],
         life: decodedData[5],
+        username:decodedData[6]
       };
 
       return {
@@ -170,6 +178,19 @@ function socketEP(socketData) {
       event = "PLAYER_HIT";
       data = {
         _id: decodedData[1]
+      };
+
+      return {
+        event,
+        data
+      };
+      break;
+    case 7:
+      event = "RECEIVE_MSG";
+      data = {
+        _id: decodedData[1],
+        username: decodedData[2],
+        msg: decodedData[3]
       };
 
       return {
