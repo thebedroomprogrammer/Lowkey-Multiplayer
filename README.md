@@ -31,10 +31,10 @@ Now all you need to do is just host your Server folder as it contains all the ne
 Deploy and visit the Index Page of your deployment side to see the game up and running.
 
 ## To Do's
-- [] Player stats
-- [] In game chat
-- [] Pan camera
-- [] Username addition
-- [] Improve performance
-- [] Game Rooms
+- [ ] Player stats
+- [ ] In game chat
+- [ ] Pan camera
+- [ ] Username addition
+- [ ] Improve performance
+- [ ] Game Rooms
 
