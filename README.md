@@ -33,8 +33,8 @@ Deploy and visit the Index Page of your deployment side to see the game up and r
 ## To Do's
 - [ ] Player stats
 - [ ] In game chat
-- [ ] Pan camera
-- [ ] Username addition
+- [x] Pan camera
+- [x] Username addition
 - [ ] Improve performance
 - [ ] Game Rooms
 
