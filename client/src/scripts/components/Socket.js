@@ -6,7 +6,9 @@ import Game from "scripts/components/Game";
 export default (function() {
   let ws;
   let createConnection = username => {
-    ws = new WebSocket("wss://lowkeymultiplayer.herokuapp.com?name=" + username);
+    ws = new WebSocket(
+      "wss://lowkeymultiplayer.herokuapp.com?name=" + username
+    );
     ws.binaryType = "arraybuffer";
 
     ws.onmessage = function(socketMsg) {
@@ -52,8 +54,13 @@ export default (function() {
           });
           break;
         case "RECEIVE_MSG":
+      
           let cm = document.createElement("DIV");
-          let t = document.createTextNode(msg.data.username + " : " + msg.data.msg);
+          let t = document.createTextNode(
+            msg.data.username + " : " + msg.data.msg
+          );
+          cm.id="chatBubble";
+          cm.class = "chat-bubble";
           cm.appendChild(t);
           document.getElementById("chatDisplay").appendChild(cm);
           break;
@@ -80,11 +87,12 @@ export default (function() {
     setInterval(() => {
       if (GS.gameState.myPlayer && GS.gameState.myPlayer.bullets) {
         var myPlayerBullets = GS.gameState.myPlayer.bullets.filter(bullet => {
+          console.log(bullet.x);
           if (
             bullet.x > 0 &&
-            bullet.x < Game.canvas.width &&
+            bullet.x < Game.World.width &&
             bullet.y > 0 &&
-            bullet.y < Game.canvas.height
+            bullet.y < Game.World.height
           ) {
             return true;
           }
@@ -95,9 +103,9 @@ export default (function() {
         var allPlayerBullets = GS.gameState.bullets.filter(bullet => {
           if (
             bullet.x > 0 &&
-            bullet.x < Game.canvas.width &&
+            bullet.x < Game.World.width &&
             bullet.y > 0 &&
-            bullet.y < Game.canvas.height
+            bullet.y < Game.World.height
           ) {
             return true;
           }
@@ -112,7 +120,7 @@ export default (function() {
           allPlayerBullets
         }
       });
-    }, 2000);
+    }, 1000);
   };
 
   let sendData = data => {

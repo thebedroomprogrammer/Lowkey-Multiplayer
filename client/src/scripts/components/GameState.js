@@ -9,8 +9,8 @@ export default (function() {
     initGame: false
   };
   setInterval(() => {
-    console.log(gameState);
-  }, 2000);
+    console.log(gameState.myPlayer);
+  }, 1000);
 
   let updateGameState = action => {
     switch (action.type) {
@@ -30,8 +30,8 @@ export default (function() {
       case "CREATE_PLAYER":
         gameState.myPlayer = new Player.PlayerShip(
           action.payload._id,
-          Math.floor(Math.random() * 1300 + 1),
-          Math.floor(Math.random() * 700 + 1),
+          Math.floor(Math.random() * 5000 + 1),
+          Math.floor(Math.random() * 5000 + 1),
           action.payload.username
         );
         gameState.initGame = true;
@@ -81,9 +81,10 @@ export default (function() {
         break;
 
       case "DESTROY_BULLETS":
+      
         gameState.myPlayer.bullets = action.payload.myPlayerBullets;
         gameState.bullets = action.payload.allPlayerBullets;
-
+      
         break;
 
       case "PLAYER_HIT":
@@ -93,6 +94,7 @@ export default (function() {
             gameState.myPlayer.life = gameState.myPlayer.life - 20;
             gameState.initGame = false;
             document.getElementById("gameCanvas").remove();
+            document.getElementById("chatWindow").remove();
             var div = document.createElement("DIV");
             var t = document.createTextNode("GAME OVER!!!"); // Create a text node
             div.appendChild(t); // Append the text to <button>
@@ -112,6 +114,7 @@ export default (function() {
           for (let player of gameState.players) {
             if (player._id == action.payload._id) {
               if (player.life == 20) {
+                player.life = player.life - 20;
                 updateGameState({
                   type: "REMOVE_PLAYER",
                   payload: { _id: player._id }

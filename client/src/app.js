@@ -38,9 +38,9 @@ function detectCollision() {
 
     if (
       GS.gameState.myPlayer.y >
-        Game.canvas.height - GS.gameState.myPlayer.height / 2 ||
+        Game.World.height - GS.gameState.myPlayer.height / 2 ||
       GS.gameState.myPlayer.x >
-        Game.canvas.width - GS.gameState.myPlayer.width / 2 ||
+        Game.World.width - GS.gameState.myPlayer.width / 2 ||
       GS.gameState.myPlayer.y < 15 ||
       GS.gameState.myPlayer.x < 15
     ) {
@@ -73,6 +73,7 @@ function detectCollision() {
             bulletCalculatedY + bullet.height
           )
         ) {
+  
           pushBullet = false;
         }
       }
@@ -95,18 +96,20 @@ function detectCollision() {
             playerCalculatedY + player.height
           )
         ) {
+
           pushBullet = false;
         }
       }
       if (pushBullet) {
+        console.log("pushed")
         bulletsArray.push(bullet);
       }
     }
     //checking when myPlayerbullet hits other players
     if (GS.gameState.myPlayer && GS.gameState.myPlayer.bullets) {
       for (let bullet of GS.gameState.myPlayer.bullets) {
-        let bulletCalculatedX = bullet.x - bullet.width / 2;
-        let bulletCalculatedY = bullet.y - bullet.height / 2;
+        let bulletCalculatedX = (bullet.x - bullet.width / 2);
+        let bulletCalculatedY = (bullet.y - bullet.height / 2);
         let pushBullet = true;
         //check with all players
         for (let player of GS.gameState.players) {
@@ -134,11 +137,15 @@ function detectCollision() {
                 _id: player._id
               }
             });
+ 
             pushBullet = false;
           }
         }
+       
         if (pushBullet) {
+
           myBulletsArray.push(bullet);
+          
         }
       }
     }
@@ -159,6 +166,9 @@ function rangeIntersect(min0, max0, min1, max1) {
     Math.min(min0, max0) <= Math.max(min1, max1)
   );
 }
+const clamp = (n, lo, hi) => n < lo ? lo : n > hi ? hi : n;
+const tau = Math.PI * 2;
+  
 
 var form = document.getElementById("welcomeForm");
 form.addEventListener("submit", function(e) {
@@ -175,25 +185,52 @@ form.addEventListener("submit", function(e) {
   var GAME_LOOP;
   function draw() {
     if (GS.gameState.initGame) {
-      colorRect(0, 0, Game.canvas.width, Game.canvas.height, "black");
+      detectCollision();
+      // colorRect(0, 0,Game.World.height, Game.World.width, "white");
+   
+      Game.ctx.clearRect(0, 0,Game.canvas.width, Game.canvas.height);//clear the viewport AFTER the matrix is reset 
+    
+      Game.Viewport.x = clamp(
+        -GS.gameState.myPlayer.x + Game.canvas.width / 2, 
+        Game.canvas.width - Game.World.width, 0
+      );
+      Game.Viewport.y = clamp(
+        -GS.gameState.myPlayer.y + Game.canvas.height / 2, 
+        Game.canvas.height - Game.World.height, 0
+      );
+      
+      for (let i = 0; i < Game.World.width; i += 50) {
+        for (let j = 0; j < Game.World.height; j += 50) {
+          if ((i / 10+ j / 10) & 1) {  
+            Game.ctx.fillStyle = "hsl(" + (360 - (i + j) / 10) + ", 70%, 70%)";
+            Game.ctx.fillRect(j + Game.Viewport.x, i + Game.Viewport.y,100, 100);
+          }
+        }
+      }
+  
       GS.gameState.myPlayer.moveAngle = 0;
       GS.gameState.myPlayer.speed = 0;
       if (window.keys && window.keys[32]) {
         GS.gameState.myPlayer.fireBullet();
       }
       if (window.keys && window.keys[65]) {
-        GS.gameState.myPlayer.moveAngle = -5;
+        GS.gameState.myPlayer.moveAngle = -10;
       }
       if (window.keys && window.keys[68]) {
-        GS.gameState.myPlayer.moveAngle = 5;
+        GS.gameState.myPlayer.moveAngle = 10;
       }
       if (window.keys && window.keys[87]) {
-        GS.gameState.myPlayer.speed = 5;
+        if (window.keys && window.keys[16]) {
+            GS.gameState.myPlayer.speed = 20;
+        }else{
+          GS.gameState.myPlayer.speed = 10;
+        } 
       }
       if (window.keys && window.keys[83]) {
-        GS.gameState.myPlayer.speed = -5;
+        GS.gameState.myPlayer.speed = -10;
       }
-      detectCollision();
+      
+      
       GS.gameState.myPlayer.newPos();
       GS.gameState.myPlayer.update();
       GS.gameState.bullets.forEach(bullet => {
@@ -207,6 +244,7 @@ form.addEventListener("submit", function(e) {
         bullet.newPos();
         bullet.update();
       });
+      
     }
   }
 
@@ -222,6 +260,7 @@ form.addEventListener("submit", function(e) {
   function colorRect(leftX, topY, width, height, drawColor) {
     Game.ctx.fillStyle = drawColor;
     Game.ctx.fillRect(leftX, topY, width, height);
+    
   }
 
   function colorCircle(centerX, centerY, radius, drawColor) {
@@ -343,15 +382,16 @@ function configureHTML(){
       </div>
       <div class="send-container">
         <form id="chatForm">
-          <input id="chatInput" type="text"/>
+          <input autocomplete="off" id="chatInput" type="text"/>
           <button id="chatSubmit" type="submit">
-            send
+            SEND
           </button>
         </form>
       <div>
     </div>`
   );
-
+  let chatWindow = document.getElementById("chatWindow");
+  chatWindow.style.height = window.innerHeight-6+"px";
   document.getElementById("chatForm").addEventListener("submit",(e)=>{
     e.preventDefault();
     let msg = document.getElementById("chatInput").value;

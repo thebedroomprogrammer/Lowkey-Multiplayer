@@ -4,9 +4,9 @@ export default (function() {
   function Bullet(id, x, y, angle, speed) {
     this.width = 2;
     this._id = id;
-    this.color = "white";
+    this.color = "black";
     this.height = 7;
-    this.speed = 10;
+    this.speed = 30;
     this.angle = angle;
     this.x = x;
     this.y = y;
@@ -15,11 +15,12 @@ export default (function() {
   Bullet.prototype.newPos = function() {
     this.x += this.speed * Math.sin(this.angle);
     this.y -= this.speed * Math.cos(this.angle);
+  
   };
 
   Bullet.prototype.update = function() {
     Game.ctx.save();
-    Game.ctx.translate(this.x, this.y);
+    Game.ctx.translate(this.x+Game.Viewport.x, this.y+Game.Viewport.y);
     Game.ctx.rotate(this.angle);
     Game.ctx.fillStyle = this.color;
     Game.ctx.fillRect(

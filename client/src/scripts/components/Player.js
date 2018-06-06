@@ -22,6 +22,7 @@ export default (function() {
     this.capacity = 5;
     this.alive = true;
     this.username = username;
+    this.fastMode = false;
   }
 
   PlayerShip.prototype.newPos = function() {
@@ -37,9 +38,11 @@ export default (function() {
   };
 
   PlayerShip.prototype.update = function() {
+    
     Game.ctx.save();
-
-    Game.ctx.translate(this.x, this.y);
+    Game.ctx.lineWidth = 3;
+    Game.ctx.translate(this.x+Game.Viewport.x, this.y+Game.Viewport.y);
+    // Game.ctx.translate(this.x, this.y);
     Game.ctx.rotate(this.angle);
     Game.ctx.fillStyle = this.color;
     Game.ctx.fillRect(
@@ -48,14 +51,20 @@ export default (function() {
       this.width,
       this.height
     );
+    Game.ctx.strokeRect(
+      this.width / -2,
+      this.height / -2,
+      this.width,
+      this.height
+    );
 
-    Game.ctx.fillStyle = this.color;
+    Game.ctx.fillStyle = "black";
     Game.ctx.fillRect(-2, -this.height + 5, 4, 10);
     Game.ctx.rotate(-this.angle);
     Game.ctx.fillStyle = "black";
     Game.ctx.font = "bold 11px Arial";
     Game.ctx.fillText(this.life, -9.5, 5);
-    Game.ctx.fillStyle = "white";
+    Game.ctx.fillStyle = "black";
     Game.ctx.font = "bold 12px Arial";
     Game.ctx.rotate(this.angle);
     Game.ctx.fillText(this.username, -15, 30);
