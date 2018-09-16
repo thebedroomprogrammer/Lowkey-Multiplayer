@@ -505,11 +505,14 @@ form.addEventListener("submit", function(e) {
 function configureHTML() {
   if (document.body.requestFullscreen) {
     document.body.requestFullscreen();
-  } else if (document.body.mozRequestFullScreen) { /* Firefox */
+  } else if (document.body.mozRequestFullScreen) {
+    /* Firefox */
     document.body.mozRequestFullScreen();
-  } else if (document.body.webkitRequestFullscreen) { /* Chrome, Safari and Opera */
+  } else if (document.body.webkitRequestFullscreen) {
+    /* Chrome, Safari and Opera */
     document.body.webkitRequestFullscreen();
-  } else if (document.body.msRequestFullscreen) { /* IE/Edge */
+  } else if (document.body.msRequestFullscreen) {
+    /* IE/Edge */
     document.body.msRequestFullscreen();
   }
 
@@ -547,34 +550,128 @@ function configureHTML() {
     </div>`
   );
 
-  function handleStart(keyCode,type="keydown") {
+  function handleStart(keyCode, div, type = "keydown") {
     window.keys = window.keys || {};
     window.keys[keyCode] = type == "keydown";
+    switch (div) {
+      case "top":
+        up.style.borderBottom = "40px solid red";
+        break;
+      case "bottom":
+        down.style.borderTop = "40px solid red";
+        break;
+      case "left":
+        left.style.borderRight = "40px solid red";
+        break;
+      case "right":
+        right.style.borderLeft = "40px solid red";
+        break;
+      case "fire":
+        fire.style.backgroundColor = "red";
+        break;
+    }
   }
 
-  function handleEnd(keyCode,type="keyup") {
+  function handleEnd(keyCode, div, type = "keyup") {
     window.keys[keyCode] = type == "keydown";
+    switch (div) {
+      case "top":
+        up.style.borderBottom = "40px solid rgba(1,1,1,0.34)";
+        break;
+      case "bottom":
+        down.style.borderTop = "40px solid rgba(1,1,1,0.34)";
+        break;
+      case "left":
+        left.style.borderRight = "40px solid rgba(1,1,1,0.34)";
+        break;
+      case "right":
+        right.style.borderLeft = "40px solid rgba(1,1,1,0.34)";
+        break;
+      case "fire":
+        fire.style.backgroundColor = "rgba(1,1,1,0.34)";
+        break;
+    }
   }
 
   var up = document.getElementById("ctrl-up");
-  up.addEventListener("touchstart",()=>{handleStart(87)} , false);
-  up.addEventListener("touchend", ()=>{handleEnd(87)}, false);
+  up.addEventListener(
+    "touchstart",
+    () => {
+      handleStart(87, "top");
+    },
+    false
+  );
+  up.addEventListener(
+    "touchend",
+    () => {
+      handleEnd(87, "top");
+    },
+    false
+  );
 
   var down = document.getElementById("ctrl-down");
-  down.addEventListener("touchstart",()=>{handleStart(83)} , false);
-  down.addEventListener("touchend", ()=>{handleEnd(83)}, false);
+  down.addEventListener(
+    "touchstart",
+    () => {
+      handleStart(83, "bottom");
+    },
+    false
+  );
+  down.addEventListener(
+    "touchend",
+    () => {
+      handleEnd(83, "bottom");
+    },
+    false
+  );
 
   var left = document.getElementById("ctrl-left");
-  left.addEventListener("touchstart",()=>{handleStart(65)} , false);
-  left.addEventListener("touchend", ()=>{handleEnd(65)}, false);
+  left.addEventListener(
+    "touchstart",
+    () => {
+      handleStart(65, "left");
+    },
+    false
+  );
+  left.addEventListener(
+    "touchend",
+    () => {
+      handleEnd(65, "left");
+    },
+    false
+  );
 
   var right = document.getElementById("ctrl-right");
-  right.addEventListener("touchstart",()=>{handleStart(68)} , false);
-  right.addEventListener("touchend", ()=>{handleEnd(68)}, false);
+  right.addEventListener(
+    "touchstart",
+    () => {
+      handleStart(68, "right");
+    },
+    false
+  );
+  right.addEventListener(
+    "touchend",
+    () => {
+      handleEnd(68, "right");
+    },
+    false
+  );
 
   var fire = document.getElementById("ctrl-fire");
-  fire.addEventListener("click",()=>{handleStart(32)} , false);
-  fire.addEventListener("touchend", ()=>{handleEnd(32)}, false);
+  fire.addEventListener(
+    "touchstart",
+    () => {
+      handleStart(32, "fire");
+    },
+    false
+  );
+  fire.addEventListener(
+    "touchend",
+    () => {
+      handleEnd(32, "fire");
+    },
+    false
+  );
 
   let chatWindow = document.getElementById("chatWindow");
   chatWindow.style.height = window.innerHeight - 6 + "px";

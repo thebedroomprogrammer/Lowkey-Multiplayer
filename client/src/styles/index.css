@@ -159,7 +159,7 @@ html, body {
 
 #ctrl-up{
     position: absolute;
-
+    z-index: 1;
     bottom: 120px;
     left: 50px;
    
@@ -171,6 +171,7 @@ html, body {
 }
 
 #ctrl-down{
+    z-index: 1;
     position: absolute;
     
     bottom: 63px;
