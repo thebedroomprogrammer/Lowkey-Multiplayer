@@ -3,7 +3,7 @@ export default (function() {
 
   window.addEventListener("resize",()=>{
     canvas.height = window.innerHeight-5;
-    canvas.width = window.innerWidth-275;
+    canvas.width = window.innerWidth;
     let chatWindow = document.getElementById("chatWindow");
     chatWindow.style.height = window.innerHeight-6+"px";
   });
@@ -28,10 +28,11 @@ export default (function() {
     }
   });
 
+
   //Initializing Game Setup
   let canvas;
   let ctx;
-  let FPS = 30;
+  let FPS = 60;
   let World = {
     height: 5000,
     width: 5000
@@ -40,7 +41,7 @@ export default (function() {
   canvas = document.getElementById("gameCanvas");	
   ctx = canvas.getContext("2d");
   canvas.height = window.innerHeight-5;
-  canvas.width = window.innerWidth-275;
+  canvas.width = window.innerWidth;
 
   return {
     canvas,

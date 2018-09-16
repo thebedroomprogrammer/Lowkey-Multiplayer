@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css?family=VT323');
 #gameCanvas{
     display:none;
 }
@@ -58,15 +59,19 @@ html, body {
 }
 
 .chat-window{
+    font-family: 'VT323', monospace;
     position: absolute;
     display: inline-block;
     width: 270px;
-    border: 1px solid #7a00aa;
+    font-size:15px;
+    top:0;
+    position:absolute;
 
    
 }
 #chatInput{
     outline: none;
+    display: none;
     border: 0px;
     height: 27px;
     border-bottom: 2px solid #7a00aa;
@@ -74,6 +79,7 @@ html, body {
 
 }
 #chatSubmit{
+    display: none;
     border: 0px;
     background-color: transparent;
     font-size: 15px;
@@ -86,6 +92,7 @@ html, body {
     text-align: center;
     position: absolute;
     bottom: 0;
+    display: none;
     left: 50%;
     height: 30px;
     width: 252px;
@@ -93,19 +100,109 @@ html, body {
     margin-bottom: 10px;
 }
 
+.stats-display{
+    position: relative;
+    overflow-y: auto;
+    background-color: transparent;
+    width: 255px;
+    left: 50%;
+    font-size: 20px;
+    transform: translate(-50%,0);
+    margin-top: 10px;
+}
 .chat-display{
-    position: absolute;
-    top:0px;
-    bottom:50px;
+    display: none;
+    position: relative;
     overflow-y: auto;
     background-color: #eee;
     width: 255px;
     left: 50%;
+    height: 66%;    
+    font-size: 20px;
     transform: translate(-50%,0);
     margin-top: 10px;
+}
+
+.feed-display{
+    position: relative;
+    overflow-y: auto;
+    background-color: transparent;
+    width: 255px;
+    height:20%;
+    left: 50%;
+    font-size: 20px;
+    transform: translate(-50%,0);
+    margin-top: 10px;
+}
+
+.feed-display div{
+    margin: 5px;
 }
 
 .chat-display div{
     margin:5px;
     
+}
+
+
+#ctrl-fire{
+    position: absolute;
+    border-radius: 50%;
+    bottom: 190px;
+    right: 95px;
+    background-color: rgba(1,1,1,0.34);
+    width: 40px;
+    height: 40px;
+   
+}
+
+#ctrl-up{
+    position: absolute;
+
+    bottom: 120px;
+    left: 50px;
+   
+    width: 0;
+    height: 0;
+    border-left: 40px solid transparent;
+    border-right: 40px solid transparent;
+    border-bottom: 40px solid rgba(1,1,1,0.34);
+}
+
+#ctrl-down{
+    position: absolute;
+    
+    bottom: 63px;
+    left: 50px;
+   
+    width: 0;
+    height: 0;
+    border-left: 40px solid transparent;
+    border-right: 40px solid transparent;
+    border-top: 40px solid rgba(1,1,1,0.34);
+}
+
+#ctrl-left{
+    position: absolute;
+    
+   bottom: 70px;
+   right:120px;
+   
+    width: 0;
+    height: 0;
+    border-top: 40px solid transparent;
+    border-bottom: 40px solid transparent;
+    border-right: 40px solid rgba(1,1,1,0.34);
+}
+
+#ctrl-right{
+    position: absolute;
+    
+    bottom: 70px;
+    right:63px;
+    width: 0;
+    height: 0;
+    border-top: 40px solid transparent;
+    border-bottom: 40px solid transparent;
+    border-left: 40px solid rgba(1,1,1,0.34);
 }

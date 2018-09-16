@@ -4,6 +4,138 @@ import Bullet from "scripts/components/Bullet";
 import Socket from "scripts/components/Socket";
 import GS from "scripts/components/GameState";
 import "styles/index.css";
+import { checkPointInPlane, findX, findY } from "scripts/utils";
+
+var canvas = document.getElementById("gameCanvas");
+
+function updateDashboard() {
+  let alive = document.getElementById("alive");
+  let killed = document.getElementById("killed");
+  alive.innerText = GS.gameState.players.length + 1;
+  killed.innerText = GS.gameState.myPlayer.killCount;
+}
+
+function findNearestPlayer() {
+  let myPlayer = {
+    x: GS.gameState.myPlayer.x,
+    y: GS.gameState.myPlayer.y
+  };
+
+  let distances = [];
+  for (let player of GS.gameState.players) {
+    distances.push({
+      _id: player._id,
+      x: player.x,
+      y: player.y,
+      d: Math.hypot(player.x - myPlayer.x, player.y - myPlayer.y)
+    });
+  }
+
+  if (distances.length > 0) {
+    let viewportX1 = Math.abs(Game.Viewport.x);
+    let viewportY1 = Math.abs(Game.Viewport.y);
+    let nearestPlayerData = distances.sort((a, b) => {
+      return a.d - b.d;
+    })[0];
+    let viewportCordinates = {
+      x1: viewportX1,
+      y1: viewportY1,
+      x2: viewportX1 + Game.canvas.width,
+      y2: viewportY1,
+      x3: viewportX1 + Game.canvas.width,
+      y3: viewportY1 + Game.canvas.height,
+      x4: viewportX1,
+      y4: viewportY1 + Game.canvas.height
+    };
+
+    let angle = parseInt(
+      Math.atan2(
+        myPlayer.y - nearestPlayerData.y,
+        myPlayer.x - nearestPlayerData.x
+      ) *
+        (180 / Math.PI)
+    );
+    if (angle < 0) {
+      angle = angle + 360;
+    }
+
+    let isNearestPlayerInSight = checkPointInPlane({
+      ...viewportCordinates,
+      x: nearestPlayerData.x,
+      y: nearestPlayerData.y
+    });
+    if (!isNearestPlayerInSight) {
+      if ((angle > 315 && angle < 365) || (angle >= 0 && angle <= 45)) {
+        let foundY = findY(
+          nearestPlayerData.y,
+          Game.Viewport.y,
+          Game.canvas.height
+        );
+        if (foundY) {
+          Game.ctx.save();
+          Game.ctx.beginPath();
+          Game.ctx.moveTo(15, foundY);
+          Game.ctx.lineTo(40, 15 + foundY);
+          Game.ctx.lineTo(40, foundY - 15);
+          Game.ctx.fillStyle = "black";
+          Game.ctx.fill();
+          Game.ctx.restore();
+        }
+      } else if (angle > 45 && angle <= 135) {
+        //top
+        let foundX = findX(
+          nearestPlayerData.x,
+          Game.Viewport.x,
+          Game.canvas.width
+        );
+        if (foundX) {
+          Game.ctx.save();
+          Game.ctx.beginPath();
+          Game.ctx.moveTo(foundX, 15);
+          Game.ctx.lineTo(foundX - 15, 40);
+          Game.ctx.lineTo(foundX + 15, 40);
+          Game.ctx.fillStyle = "black";
+          Game.ctx.fill();
+          Game.ctx.restore();
+        }
+      } else if (angle > 135 && angle <= 225) {
+        //right
+        let foundY = findY(
+          nearestPlayerData.y,
+          Game.Viewport.y,
+          Game.canvas.height
+        );
+        if (foundY) {
+          Game.ctx.save();
+          Game.ctx.beginPath();
+          Game.ctx.moveTo(Game.canvas.width - 15, foundY);
+          Game.ctx.lineTo(Game.canvas.width - 40, 15 + foundY);
+          Game.ctx.lineTo(Game.canvas.width - 40, foundY - 15);
+          Game.ctx.fillStyle = "black";
+          Game.ctx.fill();
+          Game.ctx.restore();
+        }
+      } else if (angle > 225 && angle <= 315) {
+        //bottom
+        let foundX = findX(
+          nearestPlayerData.x,
+          Game.Viewport.x,
+          Game.canvas.width
+        );
+        if (foundX) {
+          Game.ctx.save();
+          Game.ctx.beginPath();
+          Game.ctx.moveTo(foundX, Game.canvas.height - 15);
+          Game.ctx.lineTo(foundX - 15, Game.canvas.height - 40);
+          Game.ctx.lineTo(foundX + 15, Game.canvas.height - 40);
+          Game.ctx.fillStyle = "black";
+          Game.ctx.fill();
+          Game.ctx.restore();
+        }
+      }
+    }
+  }
+}
 
 function detectCollision() {
   if (GS.gameState.myPlayer) {
@@ -73,7 +205,6 @@ function detectCollision() {
             bulletCalculatedY + bullet.height
           )
         ) {
-  
           pushBullet = false;
         }
       }
@@ -96,20 +227,19 @@ function detectCollision() {
             playerCalculatedY + player.height
           )
         ) {
-
           pushBullet = false;
         }
       }
       if (pushBullet) {
-        console.log("pushed")
+        console.log("pushed");
         bulletsArray.push(bullet);
       }
     }
     //checking when myPlayerbullet hits other players
     if (GS.gameState.myPlayer && GS.gameState.myPlayer.bullets) {
       for (let bullet of GS.gameState.myPlayer.bullets) {
-        let bulletCalculatedX = (bullet.x - bullet.width / 2);
-        let bulletCalculatedY = (bullet.y - bullet.height / 2);
+        let bulletCalculatedX = bullet.x - bullet.width / 2;
+        let bulletCalculatedY = bullet.y - bullet.height / 2;
         let pushBullet = true;
         //check with all players
         for (let player of GS.gameState.players) {
@@ -130,22 +260,21 @@ function detectCollision() {
               playerCalculatedY + player.height
             )
           ) {
-            Socket.sendData([6, player._id]);
+            Socket.sendData([6, player._id, GS.gameState.myPlayer._id]);
             GS.updateGameState({
               type: "PLAYER_HIT",
               payload: {
-                _id: player._id
+                _id: player._id,
+                by: GS.gameState.myPlayer._id
               }
             });
- 
+
             pushBullet = false;
           }
         }
-       
-        if (pushBullet) {
 
+        if (pushBullet) {
           myBulletsArray.push(bullet);
-          
         }
       }
     }
@@ -166,9 +295,8 @@ function rangeIntersect(min0, max0, min1, max1) {
     Math.min(min0, max0) <= Math.max(min1, max1)
   );
 }
-const clamp = (n, lo, hi) => n < lo ? lo : n > hi ? hi : n;
+const clamp = (n, lo, hi) => (n < lo ? lo : n > hi ? hi : n);
 const tau = Math.PI * 2;
-  
 
 var form = document.getElementById("welcomeForm");
 form.addEventListener("submit", function(e) {
@@ -180,34 +308,42 @@ form.addEventListener("submit", function(e) {
   }
 
   configureHTML();
-  
+
   Socket.init(inputName.value);
   var GAME_LOOP;
   function draw() {
     if (GS.gameState.initGame) {
       detectCollision();
+      updateDashboard();
       // colorRect(0, 0,Game.World.height, Game.World.width, "white");
-   
-      Game.ctx.clearRect(0, 0,Game.canvas.width, Game.canvas.height);//clear the viewport AFTER the matrix is reset 
-    
+
+      Game.ctx.clearRect(0, 0, Game.canvas.width, Game.canvas.height); //clear the viewport AFTER the matrix is reset
+
       Game.Viewport.x = clamp(
-        -GS.gameState.myPlayer.x + Game.canvas.width / 2, 
-        Game.canvas.width - Game.World.width, 0
+        -GS.gameState.myPlayer.x + Game.canvas.width / 2,
+        Game.canvas.width - Game.World.width,
+        0
       );
       Game.Viewport.y = clamp(
-        -GS.gameState.myPlayer.y + Game.canvas.height / 2, 
-        Game.canvas.height - Game.World.height, 0
+        -GS.gameState.myPlayer.y + Game.canvas.height / 2,
+        Game.canvas.height - Game.World.height,
+        0
       );
-      
+
       for (let i = 0; i < Game.World.width; i += 50) {
         for (let j = 0; j < Game.World.height; j += 50) {
-          if ((i / 10+ j / 10) & 1) {  
+          if ((i / 10 + j / 10) & 1) {
             Game.ctx.fillStyle = "hsl(" + (360 - (i + j) / 10) + ", 70%, 70%)";
-            Game.ctx.fillRect(j + Game.Viewport.x, i + Game.Viewport.y,100, 100);
+            Game.ctx.fillRect(
+              j + Game.Viewport.x,
+              i + Game.Viewport.y,
+              100,
+              100
+            );
           }
         }
       }
-  
+      findNearestPlayer();
       GS.gameState.myPlayer.moveAngle = 0;
       GS.gameState.myPlayer.speed = 0;
       if (window.keys && window.keys[32]) {
@@ -221,16 +357,15 @@ form.addEventListener("submit", function(e) {
       }
       if (window.keys && window.keys[87]) {
         if (window.keys && window.keys[16]) {
-            GS.gameState.myPlayer.speed = 20;
-        }else{
-          GS.gameState.myPlayer.speed = 10;
-        } 
+          GS.gameState.myPlayer.speed = 20;
+        } else {
+          GS.gameState.myPlayer.speed = 20;
+        }
       }
       if (window.keys && window.keys[83]) {
-        GS.gameState.myPlayer.speed = -10;
+        GS.gameState.myPlayer.speed = -20;
       }
-      
-      
+
       GS.gameState.myPlayer.newPos();
       GS.gameState.myPlayer.update();
       GS.gameState.bullets.forEach(bullet => {
@@ -244,7 +379,6 @@ form.addEventListener("submit", function(e) {
         bullet.newPos();
         bullet.update();
       });
-      
     }
   }
 
@@ -260,7 +394,6 @@ form.addEventListener("submit", function(e) {
   function colorRect(leftX, topY, width, height, drawColor) {
     Game.ctx.fillStyle = drawColor;
     Game.ctx.fillRect(leftX, topY, width, height);
-    
   }
 
   function colorCircle(centerX, centerY, radius, drawColor) {
@@ -315,7 +448,7 @@ form.addEventListener("submit", function(e) {
   }
 
   var balls = [];
-  for (var i = 0; i < canvas.width * canvas.height / (65 * 65); i++) {
+  for (var i = 0; i < (canvas.width * canvas.height) / (65 * 65); i++) {
     balls.push(
       new Ball(Math.random() * canvas.width, Math.random() * canvas.height)
     );
@@ -369,15 +502,38 @@ form.addEventListener("submit", function(e) {
   loop();
 })();
 
+function configureHTML() {
+  if (document.body.requestFullscreen) {
+    document.body.requestFullscreen();
+  } else if (document.body.mozRequestFullScreen) { /* Firefox */
+    document.body.mozRequestFullScreen();
+  } else if (document.body.webkitRequestFullscreen) { /* Chrome, Safari and Opera */
+    document.body.webkitRequestFullscreen();
+  } else if (document.body.msRequestFullscreen) { /* IE/Edge */
+    document.body.msRequestFullscreen();
+  }
 
-function configureHTML(){
   document.getElementById("welcomeScreen").remove();
   let gameCanvas = document.getElementById("gameCanvas");
   gameCanvas.style.display = "inline-block";
   gameCanvas.focus();
   gameCanvas.insertAdjacentHTML(
     "afterend",
-    `<div class="chat-window" id="chatWindow">
+    `
+    <div id="ctrl-fire" ></div> 
+    <div id="ctrl-up" ></div> 
+    <div id="ctrl-down" ></div> 
+    <div id="ctrl-left" ></div> 
+    <div id="ctrl-right" ></div> 
+    <div class="chat-window" id="chatWindow">
+      <div id="statsDisplay" class="stats-display">
+      <table>
+      <tr><td>Alive : </td><td id="alive"></td></tr> 
+      <tr><td>Killed : </td><td id="killed"></td></tr>
+      </table>
+      </div>
+      <div id="feedDisplay" class="feed-display">
+      </div>
       <div id="chatDisplay" class="chat-display">
       </div>
       <div class="send-container">
@@ -390,17 +546,54 @@ function configureHTML(){
       <div>
     </div>`
   );
+
+  function handleStart(keyCode,type="keydown") {
+    window.keys = window.keys || {};
+    window.keys[keyCode] = type == "keydown";
+  }
+
+  function handleEnd(keyCode,type="keyup") {
+    window.keys[keyCode] = type == "keydown";
+  }
+
+  var up = document.getElementById("ctrl-up");
+  up.addEventListener("touchstart",()=>{handleStart(87)} , false);
+  up.addEventListener("touchend", ()=>{handleEnd(87)}, false);
+
+  var down = document.getElementById("ctrl-down");
+  down.addEventListener("touchstart",()=>{handleStart(83)} , false);
+  down.addEventListener("touchend", ()=>{handleEnd(83)}, false);
+
+  var left = document.getElementById("ctrl-left");
+  left.addEventListener("touchstart",()=>{handleStart(65)} , false);
+  left.addEventListener("touchend", ()=>{handleEnd(65)}, false);
+
+  var right = document.getElementById("ctrl-right");
+  right.addEventListener("touchstart",()=>{handleStart(68)} , false);
+  right.addEventListener("touchend", ()=>{handleEnd(68)}, false);
+
+  var fire = document.getElementById("ctrl-fire");
+  fire.addEventListener("click",()=>{handleStart(32)} , false);
+  fire.addEventListener("touchend", ()=>{handleEnd(32)}, false);
+
   let chatWindow = document.getElementById("chatWindow");
-  chatWindow.style.height = window.innerHeight-6+"px";
-  document.getElementById("chatForm").addEventListener("submit",(e)=>{
+  chatWindow.style.height = window.innerHeight - 6 + "px";
+  document.getElementById("chatForm").addEventListener("submit", e => {
     e.preventDefault();
     let msg = document.getElementById("chatInput").value;
     document.getElementById("chatInput").value = "";
     let cd = document.getElementById("chatDisplay");
     let cm = document.createElement("DIV");
-    let t = document.createTextNode(GS.gameState.myPlayer.username + " : "+msg);
+    let t = document.createTextNode(
+      GS.gameState.myPlayer.username + " : " + msg
+    );
     cm.appendChild(t);
-    document.getElementById("chatDisplay").appendChild(cm);
-    Socket.sendData([7,GS.gameState.myPlayer._id,GS.gameState.myPlayer.username,msg]);
+    cd.appendChild(cm);
+    Socket.sendData([
+      7,
+      GS.gameState.myPlayer._id,
+      GS.gameState.myPlayer.username,
+      msg
+    ]);
   });
 }

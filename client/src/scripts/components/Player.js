@@ -4,7 +4,7 @@ import Socket from "scripts/components/Socket";
 
 export default (function() {
   //Player Ship Code Starts
-  function PlayerShip(id, x = 30, y = 30, username,angle = 0) {
+  function PlayerShip(id, x = 30, y = 30,angle = 0,username = "unset") {
     this.width = 30;
     this.color = "white";
     this.height = 30;
@@ -23,6 +23,12 @@ export default (function() {
     this.alive = true;
     this.username = username;
     this.fastMode = false;
+    this.killCount = 0;
+  }
+
+  PlayerShip.prototype.copyfrom = function (v){
+    this.x = v.x;
+    this.y = v.y; 
   }
 
   PlayerShip.prototype.newPos = function() {
@@ -31,10 +37,10 @@ export default (function() {
       y: this.y,
       angle: this.angle
     };
-    
-    this.angle += this.moveAngle * Math.PI / 180;
-    this.x += this.speed * Math.sin(this.angle);
-    this.y -= this.speed * Math.cos(this.angle);
+    console.log();
+    this.angle = parseFloat((this.angle + (this.moveAngle * Math.PI/ 180)).toFixed(2));
+    this.x = parseInt((this.x + (this.speed * Math.sin(this.angle))).toFixed(2));
+    this.y = parseInt((this.y - (this.speed * Math.cos(this.angle))).toFixed(2));
   };
 
   PlayerShip.prototype.update = function() {
@@ -72,7 +78,7 @@ export default (function() {
   };
 
   PlayerShip.prototype.fireBullet = function() {
-    if (this.canFire && window.keys[32]) {
+    if (this.canFire) {
       var thisPlayerShip = this;
       if (this.capacity == 0) {
         this.canFire = false;

@@ -7,7 +7,7 @@ export default (function() {
   let ws;
   let createConnection = username => {
     ws = new WebSocket(
-      "wss://lowkeymultiplayer.herokuapp.com?name=" + username
+      "wss://lowkeymultiplayer.herokuapp.com/?name=" + username
     );
     ws.binaryType = "arraybuffer";
 
@@ -20,7 +20,8 @@ export default (function() {
             type: "CREATE_PLAYER",
             payload: {
               _id: msg.data._id,
-              username: msg.data.username
+              username: msg.data.username,
+              players:msg.data.players
             }
           });
 
@@ -53,6 +54,12 @@ export default (function() {
             payload: msg.data
           });
           break;
+          case "PLAYER_JOINED":
+          GS.updateGameState({
+            type: "PLAYER_JOINED",
+            payload: msg.data
+          });
+          break;
         case "RECEIVE_MSG":
       
           let cm = document.createElement("DIV");
@@ -77,8 +84,8 @@ export default (function() {
             pos.x,
             pos.y,
             pos.angle,
-            GS.gameState.myPlayer.life,
-            GS.gameState.myPlayer.username
+            // GS.gameState.myPlayer.life,
+            // GS.gameState.myPlayer.username
           ])
         );
       }

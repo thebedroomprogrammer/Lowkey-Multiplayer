@@ -13,8 +13,8 @@ export default (function() {
     this.mode = 0; //0 for manual , 1 for semi , 2 for auto
   }
   Bullet.prototype.newPos = function() {
-    this.x += this.speed * Math.sin(this.angle);
-    this.y -= this.speed * Math.cos(this.angle);
+    this.x = parseInt((this.x + (this.speed * Math.sin(this.angle))).toFixed(2));
+    this.y = parseInt((this.y -  (this.speed * Math.cos(this.angle))).toFixed(2));
   
   };
 

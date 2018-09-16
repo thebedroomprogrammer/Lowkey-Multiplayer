@@ -24,7 +24,7 @@ app.get("/", function(req, res) {
 });
 
 let players = [];
-
+setInterval(function(){console.log(players)},1000);
 function heartbeat() {
   this.isAlive = true;
 }
@@ -36,11 +36,25 @@ wss.on("connection", function connection(ws, req) {
   ws.uid = uuidv4().split("-")[0];
   ws.isAlive = true;
   ws.on("pong", heartbeat);
-  players.push(ws.uid);
-
-  ws.send(msgpack.encode([1, ws.uid, username]));
-
+  players.push({_id:ws.uid,username:username});
+ 
+  ws.send(msgpack.encode([1, ws.uid, username, JSON.stringify(players)]));
+  wss.clients.forEach(function each(client) {
+    if (client !== ws && client.readyState === WebSocket.OPEN) {
+      client.send(
+        msgpack.encode([
+          8,
+          ws.uid,
+          username
+        ])
+      );
+    }
+  });
   ws.on("close", function() {
+    let indexOfPlayerToBeRemoved = players
+    .map(player => player._id)
+    .indexOf(ws.uid);
+  players.splice(indexOfPlayerToBeRemoved, 1);
     wss.clients.forEach(function each(client) {
       if (client !== ws && client.readyState === WebSocket.OPEN) {
         client.send(msgpack.encode([2, ws.uid]));
@@ -62,8 +76,8 @@ wss.on("connection", function connection(ws, req) {
                   msg.data.x,
                   msg.data.y,
                   msg.data.angle,
-                  msg.data.life,
-                  msg.data.username
+                  // msg.data.life,
+                  // msg.data.username
                 ])
               );
             }
@@ -87,7 +101,7 @@ wss.on("connection", function connection(ws, req) {
         case "PLAYER_HIT":
           wss.clients.forEach(function each(client) {
             if (client !== ws && client.readyState === WebSocket.OPEN) {
-              client.send(msgpack.encode([6, msg.data._id]));
+              client.send(msgpack.encode([6, msg.data._id,msg.data.by]));
             }
           });
           break;
@@ -111,7 +125,7 @@ function socketEP(socketData) {
   switch (decodedData[0]) {
     case 1:
       event = "CREATE_PLAYER";
-      data = { _id: decodedData[1], username: decodedData[2] };
+      data = { _id: decodedData[1], username: decodedData[2],players:JSON.parse(decodedData[3]) };
 
       return {
         event,
@@ -134,8 +148,8 @@ function socketEP(socketData) {
         x: decodedData[2],
         y: decodedData[3],
         angle: decodedData[4],
-        life: decodedData[5],
-        username: decodedData[6]
+        // life: decodedData[5],
+        // username: decodedData[6]
       };
 
       return {
@@ -150,8 +164,8 @@ function socketEP(socketData) {
         x: decodedData[2],
         y: decodedData[3],
         angle: decodedData[4],
-        life: decodedData[5],
-        username:decodedData[6]
+        // life: decodedData[5],
+        // username:decodedData[6]
       };
 
       return {
@@ -177,7 +191,8 @@ function socketEP(socketData) {
     case 6:
       event = "PLAYER_HIT";
       data = {
-        _id: decodedData[1]
+        _id: decodedData[1],
+        by:decodedData[2]
       };
 
       return {
@@ -191,6 +206,18 @@ function socketEP(socketData) {
         _id: decodedData[1],
         username: decodedData[2],
         msg: decodedData[3]
+      };
+
+      return {
+        event,
+        data
+      };
+      break;
+      case 8:
+      event = "PLAYER_JOINED";
+      data = {
+        _id: decodedData[1],
+        username: decodedData[2]
       };
 
       return {
